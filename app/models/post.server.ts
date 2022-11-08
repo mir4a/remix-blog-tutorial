@@ -11,3 +11,7 @@ export async function getPost(slug: string) {
     where: { slug },
   });
 }
+
+export async function createPost(post) {
+  return prisma.post.create({ data: post });
+}
