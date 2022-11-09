@@ -34,7 +34,11 @@ export const action: ActionFunction = async ({ request }) => {
     return json<ActionData>(errors);
   }
 
+  const slugIsAlphanumeric =
+    slug && typeof slug === "string" && /^[a-zA-Z0-9]$/i.test(slug);
+
   invariant(typeof title === "string", "title must be a string");
+  invariant(slugIsAlphanumeric, "slug must be alphanumeric");
   invariant(typeof slug === "string", "slug must be a string");
   invariant(typeof markdown === "string", "markdown must be a string");
 
