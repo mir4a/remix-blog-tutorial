@@ -1,7 +1,7 @@
 import type { ActionFunction, LoaderFunction } from "@remix-run/node";
 import { redirect } from "@remix-run/node";
 import invariant from "tiny-invariant";
-import { getPost, updatePost } from "~/models/post.server";
+import { deletePost, getPost, updatePost } from "~/models/post.server";
 import { marked } from "marked";
 
 import { json } from "@remix-run/node";
@@ -31,6 +31,7 @@ export const action: ActionFunction = async ({ request }) => {
   const title = formData.get("title");
   const slug = formData.get("slug");
   const markdown = formData.get("markdown");
+  const method = formData.get("_method");
 
   const errors: ActionData = {
     title: title ? null : "Title is required",
@@ -39,12 +40,18 @@ export const action: ActionFunction = async ({ request }) => {
   };
   const hasErrors = Object.values(errors).some((errorMessage) => errorMessage);
 
+  invariant(typeof slug === "string", "slug must be a string");
+
+  if (method === "DELETE") {
+    await deletePost(slug);
+    return redirect("/posts/admin");
+  }
+
   if (hasErrors) {
     return json<ActionData>(errors);
   }
 
   invariant(typeof title === "string", "title must be a string");
-  invariant(typeof slug === "string", "slug must be a string");
   invariant(/^[a-zA-Z0-9]$/i.test(slug), "slug must be alphanumeric");
   invariant(typeof markdown === "string", "markdown must be a string");
 
@@ -71,49 +78,64 @@ export default function PostSlug() {
   const inputClassName = `w-full rounded border border-gray-500 px-2 py-1 text-lg`;
 
   return (
-    <Form method="post">
-      <p>
-        <label>
-          Post Title:{" "}
-          {errors?.title ? (
-            <em className="text-red-600">{errors.title}</em>
-          ) : null}
-          <input
+    <>
+      <Form method="post">
+        <p>
+          <label>
+            Post Title:{" "}
+            {errors?.title ? (
+              <em className="text-red-600">{errors.title}</em>
+            ) : null}
+            <input
+              key={post.slug}
+              type="text"
+              name="title"
+              className={inputClassName}
+              defaultValue={post.title}
+            />
+          </label>
+        </p>
+        <input type={"hidden"} name={"slug"} value={post.slug} />
+        <p>
+          <label htmlFor="markdown">
+            Markdown:{" "}
+            {errors?.markdown ? (
+              <em className="text-red-600">{errors.markdown}</em>
+            ) : null}
+          </label>
+          <br />
+          <textarea
+            id="markdown"
+            rows={20}
+            name="markdown"
+            className={`${inputClassName} font-mono`}
+            defaultValue={post.markdown}
             key={post.slug}
-            type="text"
-            name="title"
-            className={inputClassName}
-            defaultValue={post.title}
           />
-        </label>
-      </p>
-      <input type={"hidden"} name={"slug"} value={post.slug} />
-      <p>
-        <label htmlFor="markdown">
-          Markdown:{" "}
-          {errors?.markdown ? (
-            <em className="text-red-600">{errors.markdown}</em>
-          ) : null}
-        </label>
-        <br />
-        <textarea
-          id="markdown"
-          rows={20}
-          name="markdown"
-          className={`${inputClassName} font-mono`}
-          defaultValue={post.markdown}
-          key={post.slug}
-        />
-      </p>
-      <p className="text-right">
-        <button
-          type="submit"
-          className="rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400 disabled:bg-blue-300"
-          disabled={isUpdating}
-        >
-          {isUpdating ? "Updating..." : "Edit Post"}
-        </button>
-      </p>
-    </Form>
+        </p>
+        <p className="text-right">
+          <button
+            type="submit"
+            className="rounded bg-blue-500 py-2 px-4 text-white hover:bg-blue-600 focus:bg-blue-400 disabled:bg-blue-300"
+            disabled={isUpdating}
+          >
+            {isUpdating ? "Updating..." : "Edit Post"}
+          </button>
+        </p>
+      </Form>
+      <Form method="post">
+        <p className="text-left">
+          <button
+            type="submit"
+            className="rounded bg-red-500 py-2 px-4 text-white hover:bg-red-600 focus:bg-red-400 disabled:bg-red-300"
+            disabled={isUpdating}
+          >
+            {isUpdating ? "Deleting..." : "Delete Post"}
+          </button>
+        </p>
+        <input type="hidden" name="_method" value="DELETE" />
+        <input type="hidden" name="slug" value={post.slug} />
+      </Form>
+    </>
   );
 }
