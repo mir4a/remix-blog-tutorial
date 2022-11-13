@@ -4,7 +4,6 @@ import { Form, Link, useActionData, useTransition } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import { createPost } from "~/models/post.server";
-import AdminIndex from ".";
 
 type ActionData =
   | {

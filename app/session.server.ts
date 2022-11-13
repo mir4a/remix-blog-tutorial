@@ -24,6 +24,21 @@ export async function getSession(request: Request) {
   return sessionStorage.getSession(cookie);
 }
 
+export async function nonAdminGoToSomewhere(request: Request) {
+  const session = await getSession(request);
+  const userId = session.get(USER_SESSION_KEY);
+  if (!userId) {
+    throw redirect("/somewhere");
+  }
+  const user = await getUserById(userId);
+  console.log("user", user);
+
+  if (user?.email !== "admin@admin.com") {
+    throw redirect("/somewhere");
+  }
+  console.log("isAdmin", userId);
+}
+
 export async function getUserId(
   request: Request
 ): Promise<User["id"] | undefined> {
