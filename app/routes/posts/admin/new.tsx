@@ -1,9 +1,10 @@
 import type { ActionFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
-import { Form, useActionData, useTransition } from "@remix-run/react";
+import { Form, Link, useActionData, useTransition } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import { createPost } from "~/models/post.server";
+import AdminIndex from ".";
 
 type ActionData =
   | {
@@ -35,7 +36,7 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   const slugIsAlphanumeric =
-    slug && typeof slug === "string" && /^[a-zA-Z0-9]$/i.test(slug);
+    slug && typeof slug === "string" && /^[a-zA-Z0-9]+$/i.test(slug);
 
   invariant(typeof title === "string", "title must be a string");
   invariant(slugIsAlphanumeric, "slug must be alphanumeric");
@@ -54,7 +55,13 @@ export default function NewPost() {
   const transition = useTransition();
   const isCreating = Boolean(transition.submission);
 
-  return (
+  return transition.submission ? (
+    <p>
+      <Link to="/posts/admin/new" className="text-blue-600 underline">
+        Create a New Post
+      </Link>
+    </p>
+  ) : (
     <Form method="post">
       <p>
         <label>

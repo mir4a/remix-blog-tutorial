@@ -52,7 +52,7 @@ export const action: ActionFunction = async ({ request }) => {
   }
 
   invariant(typeof title === "string", "title must be a string");
-  invariant(/^[a-zA-Z0-9]$/i.test(slug), "slug must be alphanumeric");
+  invariant(/^[a-zA-Z0-9]+$/i.test(slug), "slug must be alphanumeric");
   invariant(typeof markdown === "string", "markdown must be a string");
 
   await updatePost(slug, { title, markdown });
