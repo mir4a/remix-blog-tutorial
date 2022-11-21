@@ -1,6 +1,7 @@
 import type { ActionFunction } from "@remix-run/node";
 import { json, redirect } from "@remix-run/node";
 import { Form, Link, useActionData, useTransition } from "@remix-run/react";
+import * as React from "react";
 import invariant from "tiny-invariant";
 
 import { createPost } from "~/models/post.server";
@@ -53,8 +54,25 @@ export default function NewPost() {
   const errors = useActionData();
   const transition = useTransition();
   const isCreating = Boolean(transition.submission);
+  const titleRef = React.useRef<HTMLInputElement>(null);
+  const slugRef = React.useRef<HTMLInputElement>(null);
+  const markdownRef = React.useRef<HTMLTextAreaElement>(null);
 
-  return transition.submission ? (
+  React.useEffect(() => {
+    if (errors?.title) {
+      return titleRef.current?.focus();
+    }
+    if (errors?.slug) {
+      return slugRef.current?.focus();
+    }
+    if (errors?.markdown) {
+      return markdownRef.current?.focus();
+    }
+  }, [errors]);
+
+  return transition.submission &&
+    transition.type !== "actionSubmission" &&
+    !errors ? (
     <p>
       <Link to="/posts/admin/new" className="text-blue-600 underline">
         Create a New Post
@@ -68,7 +86,12 @@ export default function NewPost() {
           {errors?.title ? (
             <em className="text-red-600">{errors.title}</em>
           ) : null}
-          <input type="text" name="title" className={inputClassName} />
+          <input
+            type="text"
+            name="title"
+            ref={titleRef}
+            className={inputClassName}
+          />
         </label>
       </p>
       <p>
@@ -77,7 +100,12 @@ export default function NewPost() {
           {errors?.slug ? (
             <em className="text-red-600">{errors.slug}</em>
           ) : null}
-          <input type="text" name="slug" className={inputClassName} />
+          <input
+            type="text"
+            name="slug"
+            ref={slugRef}
+            className={inputClassName}
+          />
         </label>
       </p>
       <p>
@@ -93,6 +121,7 @@ export default function NewPost() {
           rows={20}
           name="markdown"
           className={`${inputClassName} font-mono`}
+          ref={markdownRef}
         />
       </p>
       <p className="text-right">
